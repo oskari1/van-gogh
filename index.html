@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Reveal App</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        #image-container {
+            position: relative;
+            width: 500px;
+            height: auto;
+        }
+        #reveal-image {
+            width: 100%;
+            filter: grayscale(100%);
+            transition: filter 0.5s ease-in-out;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="image-container">
+        <img id="reveal-image" src="Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg" alt="Reveal Image">
+    </div>
+    <button id="reveal-button">Reveal Color</button>
+    
+    <script>
+        let revealLevel = 0;
+        const maxReveals = 20;  // Adjust based on extracted colors
+        const image = document.getElementById("reveal-image");
+        const button = document.getElementById("reveal-button");
+
+        button.addEventListener("click", () => {
+            if (revealLevel < maxReveals) {
+                revealLevel += 5;  // Increase color visibility gradually
+                image.style.filter = `grayscale(${100 - revealLevel}%)`;
+            } else {
+                button.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
+
