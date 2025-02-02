@@ -16,7 +16,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Reveal App</title>
+    <title>Color Reveal</title>
     <style>
         body {
             display: flex;
@@ -24,77 +24,41 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background-color: #f5f5f5;
+            gap: 20px;
         }
-        #image-container {
-            position: relative;
-            width: 500px;
-            height: auto;
+        .color-container {
+            display: flex;
+            gap: 10px;
         }
-        canvas {
-            width: 100%;
-        }
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
+        .color-box {
+            width: 50px;
+            height: 50px;
+            border: 1px solid black;
+            border-radius: 8px;
         }
     </style>
 </head>
 <body>
-    <div id="image-container">
-        <canvas id="canvas"></canvas>
-    </div>
-    <button id="reveal-button">Reveal Next Color</button>
-    
+    <button id="revealButton">Reveal Next Color</button>
+    <div class="color-container" id="colorContainer"></div>
+
     <script>
-        const img = new Image();
-        img.src = "Vincent_van_Gogh_-_Almond_blossom_-_Google_Art_Project.jpg";
-        const canvas = document.getElementById("canvas");
-        const ctx = canvas.getContext("2d");
-
-        const colorsToReveal = [
-            [132, 173, 184], [104, 146, 150], [116, 157, 154], [115, 158, 178], [143, 156, 119], [122, 142, 110], [137, 164, 154], [132, 156, 118], [156, 170, 145] 
+        const colors = [
+            [132, 173, 184], [104, 146, 150], [116, 157, 154], [115, 158, 178], [143, 156, 119], [122, 142, 110], [137, 164, 154], [132, 156, 118], [156, 170, 145], [83, 126, 149]
+            // [132, 173, 184], [104, 146, 150], [116, 157, 154], [115, 158, 178], [143, 156, 119], [122, 142, 110], [137, 164, 154], [132, 156, 118], [156, 170, 145], [83, 126, 149], [155, 175, 156], [138, 162, 144], [135, 156, 126], [116, 148, 143], [149, 161, 141], [116, 146, 121], [189, 201, 180], [127, 155, 131], [149, 151, 114], [161, 169, 148], [124, 156, 141], [171, 188, 143], [164, 169, 123], [82, 123, 104], [194, 206, 175], [196, 191, 170], [121, 126, 96], [83, 109, 87], [120, 128, 97], [116, 129, 95], [145, 147, 122], [199, 189, 169], [189, 184, 161], [161, 167, 153], [141, 180, 193], [143, 148, 106], [69, 103, 72], [168, 187, 128], [130, 156, 97], [160, 178, 128], [153, 151, 117], [149, 156, 104], [173, 183, 129], [92, 141, 130], [86, 126, 102], [173, 181, 172], [138, 131, 102], [149, 137, 86], [121, 132, 123], [81, 108, 91], [105, 130, 128], [192, 210, 188], [142, 159, 154], [73, 107, 103], [188, 177, 128], [168, 169, 157], [96, 125, 87], [162, 189, 184], [219, 213, 202], [119, 118, 91], [170, 167, 131], [175, 193, 144], [206, 195, 171], [128, 157, 108], [88, 103, 95], [151, 146, 125], [63, 93, 79], [210, 204, 179], [69, 106, 129], [174, 172, 117], [177, 195, 151], [175, 179, 106], [61, 91, 64], [75, 99, 101], [143, 128, 65], [86, 121, 81], [79, 105, 106], [163, 120, 94], [173, 175, 168], [183, 172, 114], [140, 177, 159], [121, 163, 148], [155, 129, 103], [204, 204, 142], [66, 113, 104], [26, 41, 30], [138, 151, 146], [64, 111, 104], [65, 91, 82], [119, 119, 88], [118, 100, 87], [41, 59, 43], [69, 112, 111], [66, 112, 86], [120, 148, 89], [129, 166, 121], [209, 207, 176], [68, 111, 116], [44, 69, 60], [89, 110, 108]
         ];
+        
+        let visibleCount = 0;
+        const button = document.getElementById("revealButton");
+        const container = document.getElementById("colorContainer");
 
-
-        let revealIndex = 0;
-
-        img.onload = () => {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            applyFilter(); // Start with a fully filtered image
-        };
-
-        function applyFilter() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-            
-            function isAllowedColor(r, g, b) {
-                return colorsToReveal.slice(0, revealIndex + 1).some(([cr, cg, cb]) => 
-                    Math.abs(r - cr) < 10 && Math.abs(g - cg) < 10 && Math.abs(b - cb) < 10
-                );
-            }
-
-            for (let i = 0; i < data.length; i += 4) {
-                let r = data[i], g = data[i + 1], b = data[i + 2];
-                if (!isAllowedColor(r, g, b)) {
-                    data[i] = data[i + 1] = data[i + 2] = 255; // White background
-                    data[i + 3] = 255; // Keep it visible
-                }
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-        }
-
-        document.getElementById("reveal-button").addEventListener("click", () => {
-            if (revealIndex < colorsToReveal.length - 1) {
-                revealIndex++;
-                applyFilter();
-            } else {
-                document.getElementById("reveal-button").disabled = true;
+        button.addEventListener("click", () => {
+            if (visibleCount < colors.length) {
+                const div = document.createElement("div");
+                div.className = "color-box";
+                div.style.backgroundColor = `rgb(${colors[visibleCount].join(",")})`;
+                container.appendChild(div);
+                visibleCount++;
             }
         });
     </script>
