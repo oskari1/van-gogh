@@ -14,54 +14,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Reveal</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            gap: 20px;
-        }
-        .color-container {
-            display: flex;
-            gap: 10px;
-        }
-        .color-box {
-            width: 50px;
-            height: 50px;
-            border: 1px solid black;
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Reveal App</title>
+  <style>
+    .center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 10px;
+    }
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
 </head>
 <body>
+  <div class="center">
     <button id="revealButton">Reveal Next Color</button>
-    <div class="color-container" id="colorContainer"></div>
+    <canvas id="filteredCanvas" width="0" height="0"></canvas>
+  </div>
 
-    <script>
-        const colors = [
-            [132, 173, 184], [104, 146, 150], [116, 157, 154], [115, 158, 178], [143, 156, 119], [122, 142, 110], [137, 164, 154], [132, 156, 118], [156, 170, 145], [83, 126, 149]
-            // [132, 173, 184], [104, 146, 150], [116, 157, 154], [115, 158, 178], [143, 156, 119], [122, 142, 110], [137, 164, 154], [132, 156, 118], [156, 170, 145], [83, 126, 149], [155, 175, 156], [138, 162, 144], [135, 156, 126], [116, 148, 143], [149, 161, 141], [116, 146, 121], [189, 201, 180], [127, 155, 131], [149, 151, 114], [161, 169, 148], [124, 156, 141], [171, 188, 143], [164, 169, 123], [82, 123, 104], [194, 206, 175], [196, 191, 170], [121, 126, 96], [83, 109, 87], [120, 128, 97], [116, 129, 95], [145, 147, 122], [199, 189, 169], [189, 184, 161], [161, 167, 153], [141, 180, 193], [143, 148, 106], [69, 103, 72], [168, 187, 128], [130, 156, 97], [160, 178, 128], [153, 151, 117], [149, 156, 104], [173, 183, 129], [92, 141, 130], [86, 126, 102], [173, 181, 172], [138, 131, 102], [149, 137, 86], [121, 132, 123], [81, 108, 91], [105, 130, 128], [192, 210, 188], [142, 159, 154], [73, 107, 103], [188, 177, 128], [168, 169, 157], [96, 125, 87], [162, 189, 184], [219, 213, 202], [119, 118, 91], [170, 167, 131], [175, 193, 144], [206, 195, 171], [128, 157, 108], [88, 103, 95], [151, 146, 125], [63, 93, 79], [210, 204, 179], [69, 106, 129], [174, 172, 117], [177, 195, 151], [175, 179, 106], [61, 91, 64], [75, 99, 101], [143, 128, 65], [86, 121, 81], [79, 105, 106], [163, 120, 94], [173, 175, 168], [183, 172, 114], [140, 177, 159], [121, 163, 148], [155, 129, 103], [204, 204, 142], [66, 113, 104], [26, 41, 30], [138, 151, 146], [64, 111, 104], [65, 91, 82], [119, 119, 88], [118, 100, 87], [41, 59, 43], [69, 112, 111], [66, 112, 86], [120, 148, 89], [129, 166, 121], [209, 207, 176], [68, 111, 116], [44, 69, 60], [89, 110, 108]
-        ];
-        
-        let visibleCount = 0;
-        const button = document.getElementById("revealButton");
-        const container = document.getElementById("colorContainer");
+  <script>
+    const colors = [
+      [255, 0, 0],   // Red
+      [0, 255, 0],   // Green
+      [0, 0, 255],   // Blue
+      [255, 255, 0], // Yellow
+      [255, 165, 0]  // Orange
+    ];
 
-        button.addEventListener("click", () => {
-            if (visibleCount < colors.length) {
-                const div = document.createElement("div");
-                div.className = "color-box";
-                div.style.backgroundColor = `rgb(${colors[visibleCount].join(",")})`;
-                container.appendChild(div);
-                visibleCount++;
-            }
-        });
-    </script>
+    let visibleCount = 0;
+    let imageData = null;
+    let filteredImage = null;
+
+    // Load the image
+    const img = new Image();
+    img.src = '/path-to-your-image.jpg'; // Update with the actual image path
+    img.crossOrigin = "Anonymous";
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      imageData = ctx.getImageData(0, 0, img.width, img.height);
+
+      // Set up the canvas for filtered image
+      const filteredCanvas = document.getElementById('filteredCanvas');
+      filteredCanvas.width = img.width;
+      filteredCanvas.height = img.height;
+    };
+
+    // Handle click to reveal next color
+    document.getElementById('revealButton').addEventListener('click', () => {
+      if (visibleCount < colors.length) {
+        visibleCount++;
+      }
+      updateFilteredImage();
+    });
+
+    // Update the filtered image based on visibleCount
+    function updateFilteredImage() {
+      if (!imageData) return;
+
+      const newImageData = new ImageData(imageData.width, imageData.height);
+
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const r = imageData.data[i];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
+        const a = imageData.data[i + 3];
+
+        // Check if the color is visible
+        if (colors.slice(0, visibleCount).some(([cr, cg, cb]) => cr === r && cg === g && cb === b)) {
+          newImageData.data[i] = r;
+          newImageData.data[i + 1] = g;
+          newImageData.data[i + 2] = b;
+          newImageData.data[i + 3] = a;
+        } else {
+          newImageData.data[i] = 255;
+          newImageData.data[i + 1] = 255;
+          newImageData.data[i + 2] = 255;
+          newImageData.data[i + 3] = 0;
+        }
+      }
+
+      filteredImage = newImageData;
+
+      // Put the filtered image data onto the canvas
+      const filteredCanvas = document.getElementById('filteredCanvas');
+      const ctx = filteredCanvas.getContext('2d');
+      ctx.putImageData(filteredImage, 0, 0);
+    }
+  </script>
 </body>
 </html>
 
+
+
+<!-- import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
+const colors = [
+  [255, 0, 0],   // Red
+  [0, 255, 0],   // Green
+  [0, 0, 255],   // Blue
+  [255, 255, 0], // Yellow
+  [255, 165, 0]  // Orange
+];
+
+export default function ColorRevealApp() {
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [imageData, setImageData] = useState(null);
+  const [filteredImage, setFilteredImage] = useState(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/path-to-your-image.jpg"; // Update with actual image path
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, img.width, img.height);
+      setImageData(imageData);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!imageData) return;
+    const newImageData = new ImageData(imageData.width, imageData.height);
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const r = imageData.data[i];
+      const g = imageData.data[i + 1];
+      const b = imageData.data[i + 2];
+      const a = imageData.data[i + 3];
+      
+      if (colors.slice(0, visibleCount).some(([cr, cg, cb]) => cr === r && cg === g && cb === b)) {
+        newImageData.data[i] = r;
+        newImageData.data[i + 1] = g;
+        newImageData.data[i + 2] = b;
+        newImageData.data[i + 3] = a;
+      } else {
+        newImageData.data[i] = 255;
+        newImageData.data[i + 1] = 255;
+        newImageData.data[i + 2] = 255;
+        newImageData.data[i + 3] = 0;
+      }
+    }
+    setFilteredImage(newImageData);
+  }, [visibleCount, imageData]);
+
+  const handleClick = () => {
+    if (visibleCount < colors.length) {
+      setVisibleCount(visibleCount + 1);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-4">
+      <Button onClick={handleClick}>Reveal Next Color</Button>
+      <canvas
+        id="filteredCanvas"
+        width={imageData?.width || 0}
+        height={imageData?.height || 0}
+        style={{ border: "1px solid black" }}
+      />
+      <script>
+        {filteredImage && (() => {
+          const canvas = document.getElementById("filteredCanvas");
+          const ctx = canvas.getContext("2d");
+          ctx.putImageData(filteredImage, 0, 0);
+        })()}
+      </script>
+    </div>
+  );
+} -->
